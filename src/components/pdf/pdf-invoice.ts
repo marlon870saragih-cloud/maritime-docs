@@ -1,7 +1,7 @@
 // Invoice (PPN 11%) — juga dipakai Debit Note & Credit Note (tanpa PPN)
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { drawHeader, drawTitle, signatureBlock, finishDoc, tableTheme, L, nIdr } from './pdf-base';
+import { drawHeader, drawTitle, signatureBlock, finishDoc, tableTheme, L, nIdr, nUsd } from './pdf-base';
 import type { PdfPayload } from './index';
 
 const TITLES: Record<string, string> = {
@@ -14,7 +14,10 @@ export function invoicePdf(p: PdfPayload) {
   const fields = p.data.fields || {};
   const items: any[] = p.data.items || [];
   const lang = p.data.lang || 'id';
-  const withVat = p.def.code === 'INV'; // PPN hanya untuk Invoice
+  const currency = fields.currency || 'IDR';
+  const withVat = p.def.code === 'INV' && currency === 'IDR'; // PPN hanya untuk Invoice IDR
+  const nAmt = currency === 'USD' ? nUsd : nIdr;
+  const currLabel = currency === 'USD' ? 'USD' : 'IDR';
   const doc = new jsPDF();
 
   let y = drawHeader(doc, p.company, true);
@@ -41,14 +44,14 @@ export function invoicePdf(p: PdfPayload) {
   autoTable(doc, {
     ...tableTheme,
     startY: y,
-    head: [['#', L(lang, 'Uraian', 'Description'), 'Qty', 'Unit', L(lang, 'Harga Satuan (IDR)', 'Unit Price (IDR)'), 'Amount (IDR)']],
+    head: [['#', L(lang, 'Uraian', 'Description'), 'Qty', 'Unit', `${L(lang, 'Harga Satuan', 'Unit Price')} (${currLabel})`, `Amount (${currLabel})`]],
     body: items.map((it, i) => [
       i + 1,
       it.description || '',
       it.qty || '',
       it.unit || '',
-      nIdr(+it.priceIdr || 0),
-      nIdr((+it.qty || 0) * (+it.priceIdr || 0)),
+      nAmt(+it.priceIdr || 0),
+      nAmt((+it.qty || 0) * (+it.priceIdr || 0)),
     ]),
     foot: withVat
       ? [
@@ -56,7 +59,7 @@ export function invoicePdf(p: PdfPayload) {
           ['', '', '', '', 'PPN 11%', nIdr(ppn)],
           ['', '', '', '', 'TOTAL', nIdr(total)],
         ]
-      : [['', '', '', '', 'TOTAL', nIdr(total)]],
+      : [['', '', '', '', 'TOTAL', nAmt(total)]],
     footStyles: { fillColor: [244, 196, 48], textColor: [10, 22, 40], fontStyle: 'bold', fontSize: 9 },
     columnStyles: {
       0: { cellWidth: 9 },

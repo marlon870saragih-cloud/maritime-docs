@@ -113,7 +113,8 @@ export function signatureBlock(
   doc.setFontSize(9);
   doc.setTextColor(40, 40, 40);
   labels.forEach((lab, i) => {
-    const cx = 14 + w * i + w / 2;
+    // Satu penandatangan → posisi kanan; lebih dari satu → bagi rata
+    const cx = labels.length === 1 ? 150 : 14 + w * i + w / 2;
     doc.setFont('helvetica', 'normal');
     doc.text(lab, cx, y, { align: 'center' });
     doc.setDrawColor(100);

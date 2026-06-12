@@ -49,21 +49,23 @@ export function sheetPdf(p: PdfPayload) {
     });
   y = infoTable(doc, y, rows);
 
-  // Tabel rincian (mis. SOA): Uraian / USD / IDR + total
+  // Tabel rincian (mis. SOA): Uraian / jumlah sesuai mata uang terpilih
   if (p.def.blocks.includes('items') && items.length) {
+    const currency = fields.currency || 'IDR';
     const totUsd = items.reduce((s, it) => s + (+it.usd || 0), 0);
     const totIdr = items.reduce((s, it) => s + (+it.idr || 0), 0);
+    const amtVal = (it: any) => currency === 'USD' ? nUsd(+it.usd || 0) : nIdr(+it.idr || 0);
+    const amtTotal = currency === 'USD' ? nUsd(totUsd) : nIdr(totIdr);
     autoTable(doc, {
       ...tableTheme,
       startY: y,
-      head: [['#', L(lang, 'Uraian', 'Description'), 'USD', 'IDR']],
-      body: items.map((it, i) => [i + 1, it.description || '', nUsd(+it.usd || 0), nIdr(+it.idr || 0)]),
-      foot: [['', 'TOTAL', nUsd(totUsd), nIdr(totIdr)]],
+      head: [['#', L(lang, 'Uraian', 'Description'), currency]],
+      body: items.map((it, i) => [i + 1, it.description || '', amtVal(it)]),
+      foot: [['', 'TOTAL', amtTotal]],
       footStyles: { fillColor: [244, 196, 48], textColor: [10, 22, 40], fontStyle: 'bold', fontSize: 9 },
       columnStyles: {
         0: { cellWidth: 9 },
-        2: { halign: 'right', cellWidth: 30 },
-        3: { halign: 'right', cellWidth: 38 },
+        2: { halign: 'right', cellWidth: currency === 'USD' ? 30 : 38 },
       },
     });
     y = (doc as any).lastAutoTable.finalY + 6;

@@ -1,7 +1,7 @@
 // Registry tipe dokumen — form & PDF dirender dari definisi ini.
 // Menambah tipe dokumen baru = menambah entri di sini + (opsional) template PDF baru.
 
-export type FieldKind = 'text' | 'textarea' | 'date' | 'datetime' | 'number';
+export type FieldKind = 'text' | 'textarea' | 'date' | 'datetime' | 'number' | 'select';
 // auto = kunci auto-fill dari port call / vessel terpilih.
 // Bentuk 'v:<kolom>' membaca kolom apa pun dari model Vessel (mis. 'v:grossTonnage').
 export type AutoKey =
@@ -16,6 +16,7 @@ export interface FieldDef {
   kind: FieldKind;
   auto?: AutoKey;
   span2?: boolean; // lebar 2 kolom di form
+  options?: string[]; // untuk kind: 'select' — pilihan yang tersedia
   preset?: { id: string; en: string }; // teks awal (mis. kalimat pembuka surat) — diisi saat tipe dipilih
 }
 
@@ -66,8 +67,11 @@ const F_VOYAGE: FieldDef = { key: 'voyageNumber', id: 'Nomor Voyage', en: 'Voyag
 const F_PORT: FieldDef = { key: 'portName', id: 'Pelabuhan', en: 'Port', kind: 'text', auto: 'portName' };
 const F_DATE: FieldDef = { key: 'docDate', id: 'Tanggal', en: 'Date', kind: 'date' };
 
+const F_CURRENCY: FieldDef = { key: 'currency', id: 'Mata Uang', en: 'Currency', kind: 'select', options: ['IDR', 'USD'] };
+
 const EPDA_FIELDS: FieldDef[] = [
   F_VESSEL, F_VOYAGE, F_PORT, F_DATE,
+  F_CURRENCY,
   { key: 'usdRate', id: 'Kurs USD (IDR)', en: 'USD Rate (IDR)', kind: 'number' },
   { key: 'principal', id: 'Principal / Kepada', en: 'Principal / To', kind: 'text' },
   { key: 'notes', id: 'Catatan', en: 'Notes', kind: 'textarea', span2: true },
@@ -115,6 +119,7 @@ export const DOC_TYPES: DocTypeDef[] = [
     fields: [
       { key: 'billTo', id: 'Ditagihkan Kepada (To)', en: 'Bill To', kind: 'textarea', span2: true },
       F_VESSEL, F_VOYAGE, F_DATE,
+      F_CURRENCY,
       { key: 'terms', id: 'Terms of Payment', en: 'Terms of Payment', kind: 'text' },
       { key: 'notes', id: 'Catatan', en: 'Notes', kind: 'textarea', span2: true },
     ],
@@ -203,6 +208,7 @@ export const DOC_TYPES: DocTypeDef[] = [
     fields: [
       { key: 'billTo', id: 'Ditagihkan Kepada (To)', en: 'Bill To', kind: 'textarea', span2: true },
       F_VESSEL, F_VOYAGE, F_DATE,
+      F_CURRENCY,
       { key: 'refInvoice', id: 'Referensi Invoice / DA', en: 'Invoice / DA Reference', kind: 'text' },
       { key: 'terms', id: 'Terms of Payment', en: 'Terms of Payment', kind: 'text' },
       { key: 'notes', id: 'Catatan', en: 'Notes', kind: 'textarea', span2: true },
@@ -219,6 +225,7 @@ export const DOC_TYPES: DocTypeDef[] = [
     fields: [
       { key: 'billTo', id: 'Kepada (To)', en: 'To', kind: 'textarea', span2: true },
       F_VESSEL, F_VOYAGE, F_DATE,
+      F_CURRENCY,
       { key: 'refInvoice', id: 'Referensi Invoice yang Dikoreksi', en: 'Corrected Invoice Reference', kind: 'text' },
       { key: 'notes', id: 'Alasan / Catatan', en: 'Reason / Notes', kind: 'textarea', span2: true },
     ],
@@ -253,6 +260,7 @@ export const DOC_TYPES: DocTypeDef[] = [
       { key: 'periodFrom', id: 'Periode Dari', en: 'Period From', kind: 'date' },
       { key: 'periodTo', id: 'Periode Sampai', en: 'Period To', kind: 'date' },
       F_VESSEL, F_DATE,
+      F_CURRENCY,
       { key: 'notes', id: 'Catatan', en: 'Notes', kind: 'textarea', span2: true },
     ],
     blocks: ['items'],

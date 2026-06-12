@@ -314,6 +314,17 @@ export function DocumentHub({ company, vessels, portCalls, fromDoc, role }: Prop
                       value={fields[f.key] || ''}
                       onChange={(e) => setFields({ ...fields, [f.key]: e.target.value })}
                     />
+                  ) : f.kind === 'select' ? (
+                    <select
+                      className="input"
+                      value={fields[f.key] || ''}
+                      onChange={(e) => setFields({ ...fields, [f.key]: e.target.value })}
+                    >
+                      <option value="">{locale === 'id' ? '— pilih —' : '— select —'}</option>
+                      {(f.options || []).map((o) => (
+                        <option key={o} value={o}>{o}</option>
+                      ))}
+                    </select>
                   ) : (
                     <input
                       className="input"
@@ -335,8 +346,8 @@ export function DocumentHub({ company, vessels, portCalls, fromDoc, role }: Prop
               setRows={setItemsFx}
               cols={[
                 { key: 'description', label: locale === 'id' ? 'Uraian Biaya' : 'Description', grow: true },
-                { key: 'usd', label: 'USD', type: 'number' },
-                { key: 'idr', label: 'IDR', type: 'number' },
+                ...(fields.currency !== 'IDR' ? [{ key: 'usd', label: 'USD', type: 'number' as const }] : []),
+                ...(fields.currency !== 'USD' ? [{ key: 'idr', label: 'IDR', type: 'number' as const }] : []),
               ]}
             />
           )}
@@ -351,7 +362,7 @@ export function DocumentHub({ company, vessels, portCalls, fromDoc, role }: Prop
                 { key: 'description', label: locale === 'id' ? 'Uraian' : 'Description', grow: true },
                 { key: 'qty', label: 'Qty', type: 'number' },
                 { key: 'unit', label: 'Unit' },
-                { key: 'priceIdr', label: locale === 'id' ? 'Harga (IDR)' : 'Price (IDR)', type: 'number' },
+                { key: 'priceIdr', label: fields.currency === 'USD' ? 'Price (USD)' : (locale === 'id' ? 'Harga (IDR)' : 'Price (IDR)'), type: 'number' },
               ]}
             />
           )}
