@@ -1,0 +1,236 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  // url = koneksi runtime (pakai versi "pooled" di cloud spt Neon/Vercel Postgres)
+  url       = env("DATABASE_URL")
+  // directUrl = koneksi langsung untuk migrasi / db push (versi non-pooled)
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  OPERATOR
+  FINANCE
+  VIEWER
+}
+
+enum DocStatus {
+  DRAFT
+  FINAL
+  SIGNED
+  CANCELLED
+}
+
+enum PortCallStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model Company {
+  id                    String         @id @default(cuid())
+  name                  String
+  alias                 String?
+  address               String?
+  city                  String?
+  province              String?
+  postalCode            String?
+  country               String         @default("Indonesia")
+  phone                 String?
+  fax                   String?
+  whatsapp              String?
+  emailOps              String?
+  emailFinance          String?
+  website               String?
+  npwp                  String?
+  siup                  String?
+  nib                   String?
+  skKemenkumham         String?
+  siuppak               String?
+  signerName            String?
+  signerTitle           String?
+  logoData              String? // base64 data-URL, max 1 MB
+  subscriptionPlan      String         @default("trial")
+  subscriptionExpiresAt DateTime?
+  users                 User[]
+  vessels               Vessel[]
+  ports                 Port[]
+  portCalls             PortCall[]
+  documents             Document[]
+  crewMembers           CrewMember[]
+  bankAccounts          BankAccount[]
+  subscriptions         Subscription[]
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+}
+
+model BankAccount {
+  id            String  @id @default(cuid())
+  companyId     String
+  company       Company @relation(fields: [companyId], references: [id])
+  bankName      String
+  accountNumber String
+  holderName    String
+  branch        String?
+  swiftCode     String?
+  currency      String // "IDR" | "USD"
+  isDefault     Boolean @default(false)
+}
+
+model User {
+  id            String     @id @default(cuid())
+  companyId     String
+  company       Company    @relation(fields: [companyId], references: [id])
+  fullName      String
+  email         String     @unique
+  passwordHash  String
+  role          Role       @default(OPERATOR)
+  preferredLang String     @default("id")
+  isActive      Boolean    @default(true)
+  documents     Document[]
+  portCalls     PortCall[]
+  createdAt     DateTime   @default(now())
+}
+
+model Vessel {
+  id             String       @id @default(cuid())
+  companyId      String
+  company        Company      @relation(fields: [companyId], references: [id])
+  vesselName     String
+  imoNumber      String?
+  mmsi           String?
+  callSign       String?
+  flag           String?
+  vesselType     String?
+  grossTonnage   Float?
+  netTonnage     Float?
+  deadweight     Float?
+  loa            Float?
+  beam           Float?
+  draft          Float?
+  builtYear      Int?
+  classification String?
+  ownerName      String?
+  ownerAddress   String?
+  operatorName   String?
+  pAndIClub      String?
+  isActive       Boolean      @default(true)
+  portCalls      PortCall[]
+  documents      Document[]
+  crewMembers    CrewMember[]
+  createdAt      DateTime     @default(now())
+}
+
+model Port {
+  id        String     @id @default(cuid())
+  companyId String
+  company   Company    @relation(fields: [companyId], references: [id])
+  portName  String
+  portCode  String?
+  country   String?
+  locode    String?
+  portCalls PortCall[]
+  createdAt DateTime   @default(now())
+}
+
+model PortCall {
+  id            String         @id @default(cuid())
+  companyId     String
+  company       Company        @relation(fields: [companyId], references: [id])
+  vesselId      String
+  vessel        Vessel         @relation(fields: [vesselId], references: [id])
+  portId        String
+  port          Port           @relation(fields: [portId], references: [id])
+  callReference String         @unique
+  voyageNumber  String?
+  eta           DateTime?
+  etd           DateTime?
+  ata           DateTime?
+  atd           DateTime?
+  berthName     String?
+  cargoType     String?
+  cargoQuantity Float?
+  cargoUnit     String?
+  shipper       String?
+  consignee     String?
+  charterer     String?
+  principal     String?
+  status        PortCallStatus @default(ACTIVE)
+  notes         String?
+  createdById   String
+  createdBy     User           @relation(fields: [createdById], references: [id])
+  documents     Document[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Document {
+  id             String         @id @default(cuid())
+  companyId      String
+  company        Company        @relation(fields: [companyId], references: [id])
+  portCallId     String?
+  portCall       PortCall?      @relation(fields: [portCallId], references: [id])
+  vesselId       String?
+  vessel         Vessel?        @relation(fields: [vesselId], references: [id])
+  documentType   String
+  documentNumber String
+  title          String?
+  status         DocStatus      @default(DRAFT)
+  dataJson       Json
+  items          DocumentItem[]
+  createdById    String
+  createdBy      User           @relation(fields: [createdById], references: [id])
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model DocumentItem {
+  id           String   @id @default(cuid())
+  documentId   String
+  document     Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  lineNumber   Int
+  description  String
+  quantity     Float?
+  unit         String?
+  unitPriceUsd Float?
+  unitPriceIdr Int?
+  amountUsd    Float?
+  amountIdr    Int?
+  notes        String?
+}
+
+model CrewMember {
+  id               String    @id @default(cuid())
+  companyId        String
+  company          Company   @relation(fields: [companyId], references: [id])
+  vesselId         String
+  vessel           Vessel    @relation(fields: [vesselId], references: [id])
+  fullName         String
+  rank             String?
+  nationality      String?
+  passportNumber   String?
+  seamanBook       String?
+  dateOfBirth      DateTime?
+  signOnDate       DateTime?
+  signOffDate      DateTime?
+  contractDuration String?
+  isActive         Boolean   @default(true)
+  createdAt        DateTime  @default(now())
+}
+
+model Subscription {
+  id            String   @id @default(cuid())
+  companyId     String
+  company       Company  @relation(fields: [companyId], references: [id])
+  plan          String
+  priceIdr      Int
+  billingCycle  String
+  startsAt      DateTime
+  expiresAt     DateTime
+  paymentStatus String
+  invoiceNumber String?
+  createdAt     DateTime @default(now())
+}
