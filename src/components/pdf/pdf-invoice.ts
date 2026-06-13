@@ -1,7 +1,7 @@
 // Invoice (PPN 11%) — juga dipakai Debit Note & Credit Note (tanpa PPN)
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { drawHeader, drawTitle, signatureBlock, finishDoc, tableTheme, L, nIdr, nUsd } from './pdf-base';
+import { drawHeader, drawTitle, signatureBlock, finishDoc, tableTheme, accent, accentText, L, nIdr, nUsd } from './pdf-base';
 import type { PdfPayload } from './index';
 
 const TITLES: Record<string, string> = {
@@ -60,7 +60,7 @@ export function invoicePdf(p: PdfPayload) {
           ['', '', '', '', 'TOTAL', nIdr(total)],
         ]
       : [['', '', '', '', 'TOTAL', nAmt(total)]],
-    footStyles: { fillColor: [244, 196, 48], textColor: [10, 22, 40], fontStyle: 'bold', fontSize: 9 },
+    footStyles: { fillColor: accent(), textColor: accentText(), fontStyle: 'bold', fontSize: 9 },
     columnStyles: {
       0: { cellWidth: 9 },
       2: { cellWidth: 14, halign: 'right' },

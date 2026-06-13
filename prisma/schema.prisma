@@ -52,6 +52,7 @@ model Company {
   siuppak               String?
   signerName            String?
   signerTitle           String?
+  pdfTheme              String         @default("navy") // tema warna PDF: navy | green | maroon | slate
   logoData              String? // base64 data-URL, max 1 MB
   subscriptionPlan      String         @default("trial")
   subscriptionExpiresAt DateTime?

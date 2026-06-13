@@ -23,7 +23,8 @@ export const nUsd = (n: number) =>
   (n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 export const nIdr = (n: number) => (n || 0).toLocaleString('id-ID', { maximumFractionDigits: 0 });
 
-// Tema tabel konsisten: header navy, teks putih
+// Tema tabel konsisten: header berwarna primary, teks putih.
+// headStyles.fillColor diperbarui oleh setTheme() (dibagikan via spread ...tableTheme).
 export const tableTheme = {
   theme: 'grid' as const,
   styles: { fontSize: 9, textColor: [30, 30, 30] as [number, number, number], cellPadding: 2 },
@@ -36,6 +37,38 @@ export const tableTheme = {
   margin: { left: 14, right: 14 },
 };
 
+// === Tema warna PDF (white-label) ===
+// primary    = kop, header tabel, judul, garis pemisah
+// accent     = baris TOTAL / kotak nominal yang disorot
+// accentText = warna teks di atas accent
+export interface Theme {
+  primary: [number, number, number];
+  accent: [number, number, number];
+  accentText: [number, number, number];
+}
+
+export const THEMES: Record<string, Theme> = {
+  navy:   { primary: [10, 22, 40],   accent: [244, 196, 48],  accentText: [10, 22, 40] },
+  green:  { primary: [20, 83, 45],   accent: [34, 197, 94],   accentText: [255, 255, 255] },
+  maroon: { primary: [124, 32, 32],  accent: [245, 158, 11],  accentText: [10, 22, 40] },
+  slate:  { primary: [51, 65, 85],   accent: [148, 163, 184], accentText: [17, 24, 39] },
+};
+
+export const THEME_IDS = Object.keys(THEMES);
+
+let _theme: Theme = THEMES.navy;
+
+// Dipanggil sekali sebelum render (lihat downloadPdf). jsPDF sinkron, satu dokumen
+// per panggilan → aman menyimpan tema aktif di state modul.
+export function setTheme(id?: string | null) {
+  _theme = THEMES[id || 'navy'] || THEMES.navy;
+  tableTheme.headStyles.fillColor = _theme.primary;
+}
+
+export const primary = () => _theme.primary;
+export const accent = () => _theme.accent;
+export const accentText = () => _theme.accentText;
+
 export function drawHeader(doc: jsPDF, company: PdfCompany, financial = false): number {
   let x = 14;
   if (company.logoData) {
@@ -47,9 +80,10 @@ export function drawHeader(doc: jsPDF, company: PdfCompany, financial = false): 
       // Logo tidak valid → lanjut tanpa logo
     }
   }
+  const pc = primary();
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(14);
-  doc.setTextColor(10, 22, 40);
+  doc.setTextColor(pc[0], pc[1], pc[2]);
   doc.text(company.name.toUpperCase(), x, 15);
 
   doc.setFont('helvetica', 'normal');
@@ -69,16 +103,17 @@ export function drawHeader(doc: jsPDF, company: PdfCompany, financial = false): 
   if (financial && company.npwp) lines.push(`NPWP: ${company.npwp}`);
   lines.forEach((l, i) => doc.text(l, x, 20 + i * 4));
 
-  doc.setDrawColor(10, 22, 40);
+  doc.setDrawColor(pc[0], pc[1], pc[2]);
   doc.setLineWidth(0.6);
   doc.line(14, 35, 196, 35);
   return 43;
 }
 
 export function drawTitle(doc: jsPDF, y: number, title: string, number: string, dateStr?: string): number {
+  const pc = primary();
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(13);
-  doc.setTextColor(10, 22, 40);
+  doc.setTextColor(pc[0], pc[1], pc[2]);
   doc.text(title, 105, y, { align: 'center' });
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
@@ -119,12 +154,16 @@ export function signatureBlock(
     doc.text(lab, cx, y, { align: 'center' });
     doc.setDrawColor(100);
     doc.line(cx - 26, y + 24, cx + 26, y + 24);
-    // Penandatangan default perusahaan di kolom terakhir
+    // Penandatangan default perusahaan di kolom terakhir: nama (tebal, warna tema) + jabatan
     if (i === labels.length - 1 && signer?.name) {
+      const pc = primary();
       doc.setFont('helvetica', 'bold');
+      doc.setTextColor(pc[0], pc[1], pc[2]);
       doc.text(signer.name, cx, y + 28.5, { align: 'center' });
       doc.setFont('helvetica', 'normal');
+      doc.setTextColor(90, 90, 90);
       if (signer.title) doc.text(signer.title, cx, y + 32.5, { align: 'center' });
+      doc.setTextColor(40, 40, 40);
     }
   });
   return y + 38;
@@ -159,9 +198,10 @@ export function defTable(doc: jsPDF, y: number, def: DocTypeDef, data: any, lang
   const rows: any[] = data[t.store] || [];
   if (!rows.length) return y;
 
+  const pc = primary();
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9.5);
-  doc.setTextColor(10, 22, 40);
+  doc.setTextColor(pc[0], pc[1], pc[2]);
   doc.text(lang === 'id' ? t.title.id : t.title.en, 14, y);
   doc.setFont('helvetica', 'normal');
 

@@ -5,6 +5,14 @@ import { useLocale, useTranslations } from 'next-intl';
 import { DOC_CATEGORIES, getDocType, type DocTypeDef, canWriteDoc } from '@/lib/doc-types-client';
 import { downloadPdf } from '@/components/pdf';
 
+// Tema warna PDF (sinkron dengan THEMES di components/pdf/pdf-base.ts)
+const PDF_THEMES = [
+  { id: 'navy', name: 'Navy', primary: '#0a1628', accent: '#f4c430' },
+  { id: 'green', name: 'Forest Green', primary: '#14532d', accent: '#22c55e' },
+  { id: 'maroon', name: 'Maroon', primary: '#7c2020', accent: '#f59e0b' },
+  { id: 'slate', name: 'Slate', primary: '#334155', accent: '#94a3b8' },
+];
+
 interface Props {
   company: any;
   vessels: any[];
@@ -29,6 +37,8 @@ export function DocumentHub({ company, vessels, portCalls, fromDoc, role }: Prop
   const [saved, setSaved] = useState<any>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  // Tema PDF: default dari profil perusahaan, bisa ditimpa per dokumen sebelum download
+  const [pdfTheme, setPdfTheme] = useState<string>(company?.pdfTheme || 'navy');
   // Picker tipe dokumen: terbuka selama belum ada tipe terpilih
   const [pickerOpen, setPickerOpen] = useState(!fromDoc?.documentType);
   const [q, setQ] = useState('');
@@ -184,6 +194,7 @@ export function DocumentHub({ company, vessels, portCalls, fromDoc, role }: Prop
       data: { lang: locale, fields, items, log, crew },
       number: saved?.documentNumber || 'DRAFT',
       status: saved?.status || 'DRAFT',
+      theme: pdfTheme,
     });
   }
 
@@ -475,6 +486,24 @@ export function DocumentHub({ company, vessels, portCalls, fromDoc, role }: Prop
                 </button>
               </>
             )}
+            {/* Pilih tema warna sebelum generate PDF */}
+            <div className="flex items-center gap-1.5">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-mute">{t('pdfTheme')}</span>
+              {PDF_THEMES.map((th) => (
+                <button
+                  key={th.id}
+                  type="button"
+                  title={th.name}
+                  onClick={() => setPdfTheme(th.id)}
+                  className={`flex h-6 w-9 overflow-hidden border transition-transform ${
+                    pdfTheme === th.id ? 'border-signal scale-110' : 'border-line'
+                  }`}
+                >
+                  <span className="flex-1" style={{ background: th.primary }} />
+                  <span className="w-2.5" style={{ background: th.accent }} />
+                </button>
+              ))}
+            </div>
             <button className="btn-ghost border-signal text-signal" onClick={pdf}>
               ⬇ {t('downloadPdf')}
             </button>

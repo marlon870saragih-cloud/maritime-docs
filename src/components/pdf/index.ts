@@ -1,6 +1,7 @@
 // Dispatcher PDF — dipanggil dari client component (dynamic import)
 import type { DocTypeDef } from '@/lib/doc-types';
 import type { PdfCompany } from './pdf-base';
+import { setTheme } from './pdf-base';
 import { epdaPdf } from './pdf-epda';
 import { invoicePdf } from './pdf-invoice';
 import { norPdf } from './pdf-nor';
@@ -20,9 +21,11 @@ export interface PdfPayload {
   data: any; // dataJson: { lang, fields, items, log, crew }
   number: string;
   status: string;
+  theme?: string | null; // id tema warna (navy | green | maroon | slate)
 }
 
 export function downloadPdf(p: PdfPayload) {
+  setTheme(p.theme); // terapkan tema sebelum render
   switch (p.def.pdf) {
     case 'epda': return epdaPdf(p);
     case 'invoice': return invoicePdf(p);

@@ -6,6 +6,14 @@ import { useTranslations } from 'next-intl';
 
 type Tab = 'identity' | 'legal' | 'bank';
 
+// Tema warna PDF (sinkron dengan THEMES di components/pdf/pdf-base.ts)
+const PDF_THEMES: { id: string; name: string; primary: string; accent: string }[] = [
+  { id: 'navy', name: 'Navy', primary: '#0a1628', accent: '#f4c430' },
+  { id: 'green', name: 'Forest Green', primary: '#14532d', accent: '#22c55e' },
+  { id: 'maroon', name: 'Maroon', primary: '#7c2020', accent: '#f59e0b' },
+  { id: 'slate', name: 'Slate', primary: '#334155', accent: '#94a3b8' },
+];
+
 export function CompanyClient({ company, isAdmin }: { company: any; isAdmin: boolean }) {
   const t = useTranslations('settings');
   const ta = useTranslations('action');
@@ -42,6 +50,7 @@ export function CompanyClient({ company, isAdmin }: { company: any; isAdmin: boo
       npwp: form.npwp, siup: form.siup, nib: form.nib,
       skKemenkumham: form.skKemenkumham, siuppak: form.siuppak,
       signerName: form.signerName, signerTitle: form.signerTitle,
+      pdfTheme: form.pdfTheme || 'navy',
       logoData: form.logoData,
       bankAccounts: banks.map((b) => ({
         bankName: b.bankName || '', accountNumber: b.accountNumber || '',
@@ -111,6 +120,34 @@ export function CompanyClient({ company, isAdmin }: { company: any; isAdmin: boo
               )}
               {isAdmin && <input type="file" accept=".png,.jpg,.jpeg" onChange={onLogo} className="text-sm text-mute" />}
             </div>
+          </div>
+          {/* Tema warna PDF — default untuk semua dokumen (bisa ditimpa saat generate) */}
+          <div className="md:col-span-2">
+            <label className="label">{t('pdfTheme')}</label>
+            <div className="flex flex-wrap gap-3 mt-1">
+              {PDF_THEMES.map((th) => {
+                const active = (form.pdfTheme || 'navy') === th.id;
+                return (
+                  <button
+                    key={th.id}
+                    type="button"
+                    disabled={!isAdmin}
+                    onClick={() => setForm({ ...form, pdfTheme: th.id })}
+                    className={`flex items-center gap-2 border px-3 py-2 transition-colors ${
+                      active ? 'border-signal' : 'border-line hover:border-signal/50'
+                    } ${isAdmin ? '' : 'opacity-60 cursor-not-allowed'}`}
+                  >
+                    <span className="flex shrink-0">
+                      <span className="h-5 w-5" style={{ background: th.primary }} />
+                      <span className="h-5 w-5" style={{ background: th.accent }} />
+                    </span>
+                    <span className="text-sm">{th.name}</span>
+                    {active && <span className="text-signal font-mono text-xs">✓</span>}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-xs text-mute mt-1.5">{t('pdfThemeHint')}</p>
           </div>
           {field('name', t('name'))}
           {field('alias', t('alias'))}

@@ -1,6 +1,6 @@
 // Kwitansi / Official Receipt — dengan terbilang ID/EN
 import jsPDF from 'jspdf';
-import { drawHeader, drawTitle, infoTable, signatureBlock, finishDoc, L, nIdr } from './pdf-base';
+import { drawHeader, drawTitle, infoTable, signatureBlock, finishDoc, accent, accentText, L, nIdr } from './pdf-base';
 import type { PdfPayload } from './index';
 
 // Terbilang bahasa Indonesia (bilangan bulat ≥ 0)
@@ -60,11 +60,13 @@ export function receiptPdf(p: PdfPayload) {
   ]);
 
   // Kotak jumlah menonjol
-  doc.setFillColor(244, 196, 48);
+  const ac = accent();
+  const at = accentText();
+  doc.setFillColor(ac[0], ac[1], ac[2]);
   doc.rect(14, y + 2, 90, 12, 'F');
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(13);
-  doc.setTextColor(10, 22, 40);
+  doc.setTextColor(at[0], at[1], at[2]);
   doc.text(`Rp ${nIdr(amount)}`, 18, y + 10);
   doc.setFont('helvetica', 'normal');
 

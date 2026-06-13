@@ -1,7 +1,7 @@
 // Time Sheet — jam kerja bongkar/muat dengan total jam (dasar laytime)
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { drawHeader, drawTitle, infoTable, signatureBlock, finishDoc, tableTheme, L, dtStr } from './pdf-base';
+import { drawHeader, drawTitle, infoTable, signatureBlock, finishDoc, tableTheme, accent, accentText, L, dtStr } from './pdf-base';
 import type { PdfPayload } from './index';
 
 // "08:30"–"17:00" → jam desimal; lewat tengah malam dianggap +24 jam
@@ -42,7 +42,7 @@ export function timesheetPdf(p: PdfPayload) {
     head: [['#', L(lang, 'Tanggal', 'Date'), L(lang, 'Dari', 'From'), L(lang, 'Sampai', 'To'), L(lang, 'Kegiatan', 'Description'), L(lang, 'Jam', 'Hours')]],
     body: log.map((r, i) => [i + 1, r.d || '', r.from || '', r.to || '', r.e || '', fmtH(hours(r.from, r.to))]),
     foot: [['', '', '', '', L(lang, 'TOTAL JAM', 'TOTAL HOURS'), fmtH(total)]],
-    footStyles: { fillColor: [244, 196, 48], textColor: [10, 22, 40], fontStyle: 'bold', fontSize: 9 },
+    footStyles: { fillColor: accent(), textColor: accentText(), fontStyle: 'bold', fontSize: 9 },
     columnStyles: {
       0: { cellWidth: 9 },
       1: { cellWidth: 26 },

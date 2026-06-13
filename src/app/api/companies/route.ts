@@ -44,6 +44,7 @@ const schema = z.object({
   siuppak: z.string().optional().nullable(),
   signerName: z.string().optional().nullable(),
   signerTitle: z.string().optional().nullable(),
+  pdfTheme: z.enum(['navy', 'green', 'maroon', 'slate']).optional(),
   logoData: z.string().max(1_400_000).optional().nullable(), // base64 ~1MB
   bankAccounts: z.array(bankSchema).default([]),
 });

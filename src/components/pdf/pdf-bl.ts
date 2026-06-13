@@ -1,7 +1,7 @@
 // Bill of Lading — layout kotak-kotak standar internasional (versi sederhana)
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { drawHeader, signatureBlock, finishDoc, tableTheme } from './pdf-base';
+import { drawHeader, signatureBlock, finishDoc, tableTheme, primary } from './pdf-base';
 import type { PdfPayload } from './index';
 
 function box(doc: jsPDF, x: number, y: number, w: number, h: number, label: string, value?: string) {
@@ -23,9 +23,10 @@ export function blPdf(p: PdfPayload) {
 
   let y = drawHeader(doc, p.company);
 
+  const pc = primary();
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(13);
-  doc.setTextColor(10, 22, 40);
+  doc.setTextColor(pc[0], pc[1], pc[2]);
   doc.text('BILL OF LADING', 105, y, { align: 'center' });
   y += 7;
 

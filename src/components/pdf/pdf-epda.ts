@@ -1,7 +1,7 @@
 // EPDA / FPDA / Proforma DA
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { drawHeader, drawTitle, infoTable, signatureBlock, finishDoc, tableTheme, L, nUsd, nIdr } from './pdf-base';
+import { drawHeader, drawTitle, infoTable, signatureBlock, finishDoc, tableTheme, accent, accentText, L, nUsd, nIdr } from './pdf-base';
 import type { PdfPayload } from './index';
 
 const TITLES: Record<string, string> = {
@@ -39,7 +39,7 @@ export function epdaPdf(p: PdfPayload) {
     head: [['#', L(lang, 'Uraian Biaya', 'Description of Charges'), currency]],
     body: items.map((it, i) => [i + 1, it.description || '', amtVal(it)]),
     foot: [['', 'TOTAL', amtTotal]],
-    footStyles: { fillColor: [244, 196, 48], textColor: [10, 22, 40], fontStyle: 'bold', fontSize: 9 },
+    footStyles: { fillColor: accent(), textColor: accentText(), fontStyle: 'bold', fontSize: 9 },
     columnStyles: {
       0: { cellWidth: 9 },
       2: { halign: 'right', cellWidth: currency === 'USD' ? 30 : 38 },
